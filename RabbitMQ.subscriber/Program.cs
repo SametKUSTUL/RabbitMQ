@@ -11,18 +11,21 @@ using var connection = factory.CreateConnection();
 
 var channel = connection.CreateModel();
 
-// channel.QueueDeclare("hello-queue", true, false, false);
-
 channel.BasicQos(0, 1, false);
+
+var queueName = "direct-queue-Critical";
 
 var consumer=new EventingBasicConsumer(channel);
 
-channel.BasicConsume("hello-queue", false, consumer);
+channel.BasicConsume(queueName, false, consumer);
 
 consumer.Received += (object sender, BasicDeliverEventArgs e) =>
 {
     var message=Encoding.UTF8.GetString(e.Body.ToArray());
     Console.WriteLine($"Gelen Mesaj: {message}");
+
+    File.AppendAllText("log-critical.txt", message+ "\n");
+
     channel.BasicAck(e.DeliveryTag, false);
 };
 
